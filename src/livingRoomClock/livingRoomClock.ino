@@ -8,7 +8,8 @@
 #include <font/Font4x6.h>
 #include <font/SystemFont5x7.h>
 #include <font/Font3x5.h>
-//#include <font2/Font6x7.h>
+#include <font/Calibri14.h>
+#include <font/EMSans8x16.h>
 
 #include <DS3231.h>
 #include <EEPROM.h>
@@ -23,7 +24,8 @@
 #define Font2 Font3x5
 #define Font1 SystemFont5x7
 #define Font4 KecNumber
-//#define Font5 Font6x7
+#define Font5 EMSans8x16
+#define Font6 Calibri14
     
 // Object Declarations
 DMD3 Disp(2,1);
@@ -135,7 +137,7 @@ void loop()
     fType(1);  
     Disp.clear();
     
-   // Serial.println(String() + "sholatNow:" + SholatNow);
+    Serial.println(String() + "sholatNow:" + SholatNow);
     // Timer Function every 10 Minutes
     // Up All function with Timer in this fuction
   //  Timer_Minute(1);
@@ -144,11 +146,12 @@ void loop()
     // List of Display Component Block =========
     // =========================================
     //anim_JG(1);                                                 // addr: 1 show date time
-    showAnimasi(1);
+   showAnimasi(1);
     // dwMrq(drawMasjidName(),45,2,2);                             // addr: 2 show Masjid Name
     // dwMrq(drawDayDate()   ,45,1,3);                             // addr: 3 show Hijriah date
    // dwMrq(msgPuasa(hd_puasa,ty_puasa),75,0,4);                  // addr: 5 show Remander Puasa
     drawSholat(2);                                              // addr: 5 show sholat time
+    cekImsak(3);
     // dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
     //  dwMrq(drawCounterBack(),45,3,7);
     // anim_DT(7);                                                 // addr: 7 show date time    
@@ -158,6 +161,7 @@ void loop()
   
  //Serial.println(String() + "time:" + floatnow);
     drawAzzan(100);                                             // addr: 100 show Azzan
+    runningAfterAdzan(101);
     //drawIqomah(101);                                            // addr: 101 show Iqomah
 //    dwMrq(drawInfo(580),50,0,102); //Message Sholat biasa       // addr: 202 show Message Sholah
 //    dwMrq(drawInfo(730),50,0,103); //Message Sholat jumat       // addr: 203 show Message Jum'at
@@ -170,15 +174,15 @@ void loop()
     // =========================================
     // Display Control Block ===================
     // =========================================
-    if(RunFinish==1) {RunSel = 2; RunFinish =0;}                      //after anim 1 set anim 2
-    if(RunFinish==2) {RunSel = 1; RunFinish =0;}                      //after anim 2 set anim 3
+    if(RunFinish==1) {RunSel = 1; RunFinish =0;}                      //after anim 1 set anim 2
+    if(RunFinish==2) {RunSel = 2; RunFinish =0;}                      //after anim 2 set anim 3
 //  if(RunFinish==3) {RunSel = 3; RunFinish =0;}
 //    if(RunFinish==3)                                                  //after anim 3 set anim 5 or anim 4 if puasa
 //         {
 //          if (ty_puasa!=0)  {RunSel = 4; RunFinish =0;}
 //          else {RunSel = 5; RunFinish =0;}
 //         }
-    if(RunFinish==3)  {RunSel = 5;  RunFinish =0;}                      //after anim 4 set anim 5
+    if(RunFinish==3)  {RunSel = 1;  RunFinish =0;}                      //after anim 4 set anim 5
     if(RunFinish==5)  {RunSel = 6;  RunFinish =0;}                      //after anim 5 set anim 6
     if(RunFinish==6)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
     if(RunFinish==7)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
@@ -190,8 +194,8 @@ void loop()
     if(RunFinish==100 and jumat )     {RunSel = 1; RunFinish = 0; reset_x = 1;}  //after Azzan Jumat (anim 100)
     else if(RunFinish==100)           {RunSel = 101; RunFinish =0;}               //after Azzan Sholah (Iqomah)
         
-    if(RunFinish==101) {RunSel = 104; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
-    if(RunFinish==102) {RunSel = 104; RunFinish =0;}                  //after Message Sholah (anim 102) set Blink Sholah(anim 104) 
+    if(RunFinish==101) {RunSel = 102; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
+    if(RunFinish==102) {RunSel = 1; RunFinish =0;}                  //after Message Sholah (anim 102) set Blink Sholah(anim 104) 
     if(RunFinish==103) {RunSel = 104; RunFinish =0;}                  //after Messagw Jum'at (anim 103) set Blink Sholah(anim 104)
     if(RunFinish==104) {RunSel = 1; RunFinish =0;}                    //after Blink Sholah back to anim 1 
 
@@ -254,7 +258,8 @@ void update_All_data()
   
   if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(20);}
       else                                                   {setBrightness(200);}  
-     /////// Serial.println((float)3.5);
+     Serial.println((float)4.00);
+  if((floatnow > (float)4.00) and (floatnow < sholatT[0]) ){RunSel = 3;}
   }
   
     

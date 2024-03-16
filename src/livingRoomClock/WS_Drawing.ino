@@ -10,17 +10,25 @@ void drawAzzan(int DrawAdd)
     static uint8_t    ct;
     static uint16_t   lsRn;
     uint16_t          Tmr = millis();
-
+    char buff_jam[10];
+    char buff_sec[10];
+    char buff_text1[15]="ADZAN";
+    char buff_text2[20];
+  
+    sprintf(buff_jam,"%02d:%02d",now.hour(),now.minute());
+    sprintf(buff_sec,"%02d  ",now.second());
+    sprintf(buff_text1,"%s     ","ADZAN");
+    sprintf(buff_text2,"%s     ",sholatN(SholatNow));  
+   
     if((Tmr-lsRn) > 500 and ct <= ct_limit)
       {
         lsRn = Tmr;
+        
         if((ct%2) == 0)
-          { //Disp.drawRect(1,2,62,13);
-            fType(0);
-            dwCtr(0,0,"ADZAN");
-            fType(1);
-            if(jumat) {dwCtr(0,8,sholatN(8));}
-            else      {dwCtr(0,8,sholatt[SholatNow]);}
+          { 
+            fType(1); dwCtr(0,0,buff_text1);
+            fType(1); dwCtr(0,8,buff_text2);
+            
             Buzzer(1);
           }
         else 
@@ -28,10 +36,43 @@ void drawAzzan(int DrawAdd)
         DoSwap = true; 
         ct++;
       }
+      fType(1); dwCtr(42,9,buff_sec);
+      fType(1); dwCtr(34,0,buff_jam);
+      
     if ((Tmr-lsRn)>2000 and (ct > ct_limit))
       {dwDone(DrawAdd);
        ct = 0;
-       Buzzer(0);}
+       Buzzer(0);
+       }
+  }
+
+
+void runningAfterAdzan(int DrawAdd) //running teks ada jam nya
+  { 
+    // check RunSelector
+    static uint16_t   x; 
+    if(!dwDo(DrawAdd)) return;
+    if (reset_x !=0) { x=0;reset_x = 0;}      
+    
+    static char msg[] = "selamat menunaikan ibadah sholat";
+    char  out[460];
+    sprintf(out,"%s %s",msg, sholatN(SholatNow));
+    static uint16_t   lsRn;
+    byte Speed = 75;
+    int fullScroll = Disp.textWidth(msg) + DWidth + 150;    
+    uint16_t          Tmr = millis();
+    Serial.println(String()+"fullScroll:" + fullScroll);
+      BuzzerBlink(true);
+    if((Tmr-lsRn)> Speed)
+    { lsRn = Tmr;
+        if (x < fullScroll) {++x;}
+         else {  dwDone(DrawAdd); x=0; BuzzerBlink(false); return;}
+           
+        fType(5);  //Marquee    jam yang tampil di bawah
+        Disp.drawText(DWidth - x, 0, out); 
+        DoSwap = true;
+}
+
   }
 
 void showAnimasi(int DrawAdd){
@@ -262,6 +303,36 @@ void drawSholat(int DrawAdd)
      Disp.drawText(19,x1,BuffM);  //tampilkan menit
     
   }
+
+void cekImsak(int DrawAdd){
+  if(!dwDo(DrawAdd)) return;
+  static float value;
+  static int cekNext = 0;
+  static bool state = false;
+
+  value = sholatT[cekNext] - floatnow;  value = value = value + 0.01;
+
+  char text[] = "menuju waktu";
+  char  BuffTime[20];
+  char  BuffShol[50];
+  float   stime   = value;
+  uint8_t shour   = floor(stime);
+  uint8_t sminute = floor((stime-(float)shour)*60);
+  uint8_t ssecond = floor((stime-(float)shour-(float)sminute/60)*3600);
+  sprintf(BuffTime,"%s%02d:%02d:%02d","-",shour,sminute,ssecond);
+  sprintf(BuffShol,"%s",sholatN(cekNext));
+  // Serial.println(String() + "sholatT[cekNext]:" + sholatT[cekNext]);
+  //Serial.println(String() + "time            :" + floatnow);
+  if(sminute == 10 && ssecond <= 5){ Buzzer(1);} 
+  else if(sminute == 0 && ssecond <= 20){  if(ssecond % 2){ Buzzer(1);} else{ Buzzer(0);} }
+  else{ Buzzer(0); }
+
+  if(shour == 0 && sminute == 0 && ssecond == 0){ dwDone(DrawAdd); }
+  Serial.println(String() + "sminute            :" + sminute);
+  fType(1); dwCtr(0,0,BuffShol); //tulisan waktu sholat
+  fType(1); dwCtr(0,9,BuffTime);   //jadwal sholatnya
+  DoSwap = true;           
+}
 
 /*
 bool stateCekCon=false;
@@ -608,6 +679,32 @@ void Buzzer(uint8_t state)
     else 
       {noTone(BUZZ);}
   }
+
+void BuzzerBlink(bool state){
+  
+  uint16_t currentMillis = millis();
+  static unsigned long saveTime;
+  static bool          stateBlink=false;
+
+  if (currentMillis - saveTime >= 100 && state == true) {
+    // save the last time you blinked the LED
+    saveTime = currentMillis;
+    
+    if (stateBlink) {
+      digitalWrite(BUZZ,LOW);
+    } else {
+      digitalWrite(BUZZ,HIGH);
+    } 
+    stateBlink = !stateBlink;
+     
+  }
+  if(state == false){
+    digitalWrite(BUZZ,LOW);
+    saveTime =0;
+  }
+  
+  }
+
   
 void fType(int x)
   {
@@ -616,7 +713,8 @@ void fType(int x)
     else if(x==2) Disp.setFont(Font2);
     else if(x==3) Disp.setFont(Font3);
     else if(x==4) Disp.setFont(Font4);
-  //  else Disp.setFont(Font5);  
+     else if(x==5) Disp.setFont(Font5);
+    else if(x==6) Disp.setFont(Font6);  
   }
 
 // digunakan untuk menghitung hari pasaran

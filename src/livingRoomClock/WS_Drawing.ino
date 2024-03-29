@@ -88,9 +88,9 @@ void showAnimasi(int DrawAdd){
   int tahun = now.year();
   int satTahun = tahun / 1000;
   int  ribTahun = satTahun * 1000;
-  Serial.println(String() + "tahun   :" + tahun);
-  Serial.println(String() + "satTahun:" + satTahun);
-  Serial.println(String() + "ribTahun:" + ribTahun);
+  // Serial.println(String() + "tahun   :" + tahun);
+  // Serial.println(String() + "satTahun:" + satTahun);
+  // Serial.println(String() + "ribTahun:" + ribTahun);
   char buff_jam[10];
   char buff_tgl[10];
   char buff_bln[10];
@@ -323,16 +323,86 @@ void cekImsak(int DrawAdd){
   sprintf(BuffShol,"%s",sholatN(cekNext));
   // Serial.println(String() + "sholatT[cekNext]:" + sholatT[cekNext]);
   //Serial.println(String() + "time            :" + floatnow);
-  if(sminute == 10 && ssecond <= 5){ Buzzer(1);} 
+
+  if(sminute == 5 && ssecond <= 5){ Buzzer(1);} 
   else if(sminute == 0 && ssecond <= 20){  if(ssecond % 2){ Buzzer(1);} else{ Buzzer(0);} }
   else{ Buzzer(0); }
 
   if(shour == 0 && sminute == 0 && ssecond == 0){ dwDone(DrawAdd); }
-  Serial.println(String() + "sminute            :" + sminute);
+  //Serial.println(String() + "sminute            :" + sminute);
   fType(1); dwCtr(0,0,BuffShol); //tulisan waktu sholat
   fType(1); dwCtr(0,9,BuffTime);   //jadwal sholatnya
   DoSwap = true;           
 }
+
+void test(int DrawAdd){
+  if(!dwDo(DrawAdd)) return;
+  static uint16_t   lsRn;
+  uint16_t          Tmr = millis();
+  static uint8_t    ct;
+  uint8_t           ct_limit =20;  //harus angka genap
+
+  if((Tmr-lsRn) > 500 and ct <= ct_limit){
+    lsRn = Tmr;
+    // dwCtr(0, 0, "WAKTUNYA"); 
+    // dwCtr(0, 9, " IMSYAK"); 
+    if((ct%2) == 0)
+          { 
+            fType(1); dwCtr(0, 0, "WAKTUNYA"); 
+            fType(1); dwCtr(0, 9, " IMSYAK"); 
+            
+            Buzzer(1);
+          }
+        else 
+          { Buzzer(0);}
+    DoSwap = true; //,,
+    ct++;
+  }
+  
+  if (ct > ct_limit)
+      {dwDone(DrawAdd);
+       ct = 0;
+       Buzzer(0);
+       }
+  
+   
+}
+/*///////////////
+void cekImsak(int DrawAdd){
+  if(!dwDo(DrawAdd)) return;
+  static float value;
+  static int cekNext = 0;
+  static bool state = false;
+
+  value = sholatT[cekNext] - floatnow;  value = value = value + 0.01;
+  float flag = sholatT[0] - (float)0.18;
+  char text[] = "menuju waktu";
+  char  BuffTime[20];
+  char  BuffShol[50];
+  float   stime   = flag;
+  uint8_t shour   = floor(stime);
+  uint8_t sminute = floor((stime-(float)shour)*60);
+  uint8_t ssecond = floor((stime-(float)shour-(float)sminute/60)*3600);
+  sprintf(BuffTime,"%s%02d:%02d:%02d","-",shour,sminute,ssecond);
+  sprintf(BuffShol,"%s",sholatN(cekNext));
+  // Serial.println(String() + "sholatT[cekNext]:" + sholatT[cekNext]);
+  //Serial.println(String() + "time            :" + floatnow);
+  
+  if(floatnow == flag){ Serial.println("true");  }
+  Serial.println(String() + "flag    :" + flag);
+  Serial.println(String() + "floatnow:" + floatnow);
+
+  if(sminute == 5 && ssecond <= 5){ Buzzer(1);} 
+  else if(sminute == 0 && ssecond <= 20){  if(ssecond % 2){ Buzzer(1);} else{ Buzzer(0);} }
+  else{ Buzzer(0); }
+
+  if(shour == 0 && sminute == 0 && ssecond == 0){ dwDone(DrawAdd); }
+  //Serial.println(String() + "sminute            :" + sminute);
+  fType(1); dwCtr(0,0,BuffShol); //tulisan waktu sholat
+  fType(1); dwCtr(0,9,BuffTime);   //jadwal sholatnya
+  DoSwap = true;           
+}
+//////////////////*/
 
 /*
 bool stateCekCon=false;
@@ -675,9 +745,9 @@ void dwCtr(int x, int y,const char* Msg)
 void Buzzer(uint8_t state)
   {
     if(state ==1 ) //dapat dikasih kondisi jika diwaktu tertentu buzzer tidak aktif
-      {tone(BUZZ, 500, 400);}
+      {digitalWrite(BUZZ,HIGH);}
     else 
-      {noTone(BUZZ);}
+      {digitalWrite(BUZZ,LOW);}
   }
 
 void BuzzerBlink(bool state){

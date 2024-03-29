@@ -111,15 +111,17 @@ char *sholatt[] = {"IMSAK","SUBUH","TERBIT","DHUHA","DZUHUR ","ASHAR","MAGRIB","
 void setup()
   { //init comunications 
     Wire.begin();
-    Serial.begin(9600);
+    Serial.begin(57600);
      pinMode(BUZZ, OUTPUT); 
          
     // Get Saved Parameter from EEPROM   
     updateTime();
-//    GetPrm();
-//     SendPrm();
-//    Clock.setHour(21);
-//    Clock.setMinute(5);
+    for(int i = 0; i < 2; i++){
+      Buzzer(1);
+      delay(80);
+      Buzzer(0);
+      delay(80);
+    }
 
     //init P10 Led Disp & Salam
     Disp_init();
@@ -137,7 +139,7 @@ void loop()
     fType(1);  
     Disp.clear();
     
-    Serial.println(String() + "sholatNow:" + SholatNow);
+    //Serial.println(String() + "sholatNow:" + SholatNow);
     // Timer Function every 10 Minutes
     // Up All function with Timer in this fuction
   //  Timer_Minute(1);
@@ -152,6 +154,7 @@ void loop()
    // dwMrq(msgPuasa(hd_puasa,ty_puasa),75,0,4);                  // addr: 5 show Remander Puasa
     drawSholat(2);                                              // addr: 5 show sholat time
     cekImsak(3);
+    test(4);
     // dwMrq(drawInfo()    ,45,1,6);                             // addr: 6 show Info 1
     //  dwMrq(drawCounterBack(),45,3,7);
     // anim_DT(7);                                                 // addr: 7 show date time    
@@ -182,20 +185,20 @@ void loop()
 //          if (ty_puasa!=0)  {RunSel = 4; RunFinish =0;}
 //          else {RunSel = 5; RunFinish =0;}
 //         }
-    if(RunFinish==3)  {RunSel = 1;  RunFinish =0;}                      //after anim 4 set anim 5
-    if(RunFinish==5)  {RunSel = 6;  RunFinish =0;}                      //after anim 5 set anim 6
-    if(RunFinish==6)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
-    if(RunFinish==7)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
+    if(RunFinish==3)  {RunSel = 4;  RunFinish =0;}                      //after anim 4 set anim 5
+    if(RunFinish==4)  {RunSel = 1;  RunFinish =0;}                      //after anim 5 set anim 6
+    // if(RunFinish==6)  {RunSel = 7;  RunFinish =0;}                      //after anim 6 set anim 7
+    // if(RunFinish==7)  {RunSel = 1;  RunFinish =0;}                      //after anim 7 set anim 8
 //    if(RunFinish==8)  {RunSel = 9;  RunFinish =0;}                      //after anim 8 set anim 9
 //    if(RunFinish==9)  {RunSel = 10; RunFinish =0;}                      //after anim 9 set anim 10
 //    if(RunFinish==10) {RunSel = 1;  RunFinish =0;}                      //after anim 10 set anim 1
     
     
-    if(RunFinish==100 and jumat )     {RunSel = 1; RunFinish = 0; reset_x = 1;}  //after Azzan Jumat (anim 100)
-    else if(RunFinish==100)           {RunSel = 101; RunFinish =0;}               //after Azzan Sholah (Iqomah)
+    //if(RunFinish==100 and jumat )     {RunSel = 1; RunFinish = 0; reset_x = 1;}  //after Azzan Jumat (anim 100)
+ if(RunFinish==100)           {RunSel = 101; RunFinish =0; }               //after Azzan Sholah (Iqomah)
         
-    if(RunFinish==101) {RunSel = 102; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
-    if(RunFinish==102) {RunSel = 1; RunFinish =0;}                  //after Message Sholah (anim 102) set Blink Sholah(anim 104) 
+    if(RunFinish==101) {RunSel = 1; RunFinish =0; reset_x=1;}       //after Iqomah(anim 101) set Message Sholah (anim 102)   
+    if(RunFinish==102) {RunSel = 103; RunFinish =0;}                  //after Message Sholah (anim 102) set Blink Sholah(anim 104) 
     if(RunFinish==103) {RunSel = 104; RunFinish =0;}                  //after Messagw Jum'at (anim 103) set Blink Sholah(anim 104)
     if(RunFinish==104) {RunSel = 1; RunFinish =0;}                    //after Blink Sholah back to anim 1 
 
@@ -255,14 +258,21 @@ void update_All_data()
 //  check_puasa();                                              // check jadwal Puasa Besok
   if(floatnow>sholatT[6]) {date_cor = 1;}                     // load Hijr Date + corection next day after Mhagrib 
   nowH = toHijri(now.year(),now.month(),now.day(),date_cor);  // load Hijir Date
-  
-  if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(20);}
-      else                                                   {setBrightness(200);}  
-     Serial.println((float)4.00);
-  if((floatnow > (float)4.00) and (floatnow < sholatT[0]) ){RunSel = 3;}
+  float flag = sholatT[0] - (float)0.18;
+  // if ((floatnow > (float)22.00) or (floatnow < (float)3.00) )    {setBrightness(20);}
+  //     else                                                   {setBrightness(200);}  
+    // Serial.println((float)4.00);
+  if(floatnow >= flag && floatnow < sholatT[0]){ RunSel = 3;  Serial.println("true"); }
+  Serial.println(String() + "flag    :" + flag);
+  Serial.println(String() + "floatnow:" + floatnow);
+  Serial.println(String() + "RunSel  :" + RunSel);
+  //if((floatnow > (float)4.00) and (floatnow < sholatT[0]) ){RunSel = 3;}
   }
   
-    
+/*
+floatnow:3.83
+flag    :3.99
+*/
 void check_azzan()
   { //Check Waktu Sholat
     SholatNow  = -1;
